@@ -188,3 +188,34 @@ func BenchmarkMapGetKeysForeach(b *testing.B) {
 
 	_ = keys
 }
+
+func BenchmarkIncrementInt(b *testing.B) {
+	a := value{0}
+	for i := 0; i < b.N; i++ {
+		a.num++
+	}
+}
+
+func BenchmarkIncrementIntWithCastFromInterface(b *testing.B) {
+	a := struct {
+		num interface{}
+	}{
+		num: 0,
+	}
+	for i := 0; i < b.N; i++ {
+		a.num = a.num.(int) + 1
+	}
+}
+
+func BenchmarkCastIntFromInterface(b *testing.B) {
+	a := struct {
+		num interface{}
+	}{
+		num: 1,
+	}
+	var c int
+	for i := 0; i < b.N; i++ {
+		c += a.num.(int)
+	}
+	_ = c
+}
