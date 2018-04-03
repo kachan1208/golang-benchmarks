@@ -1,8 +1,10 @@
 package main
 
 import (
+	"crypto/md5"
 	"encoding/json"
 	"reflect"
+	"strconv"
 	"testing"
 )
 
@@ -31,6 +33,14 @@ var err error
 
 type value struct {
 	num int
+}
+
+var event = struct {
+	ActionID int
+	AccID    string
+	AppID    string
+}{
+	100, "sdkjfhskldfhslkd", "skjdfhsldkfhlsdkfjh",
 }
 
 func BenchmarkIterateMapWithoutPointer(b *testing.B) {
@@ -211,11 +221,29 @@ func BenchmarkCastIntFromInterface(b *testing.B) {
 	a := struct {
 		num interface{}
 	}{
-		num: 1,
+		num: 0,
 	}
 	var c int
 	for i := 0; i < b.N; i++ {
-		c += a.num.(int)
+		c = a.num.(int) + 1
+		a.num = c
 	}
-	_ = c
+}
+
+func BenchmarkCustomHash(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		id := uint64(14695981039346656037)
+		for _, c := range []byte(strconv.Itoa(event.ActionID) + event.AccID + event.AppID) {
+			id *= 1099511628211
+			id ^= uint64(c)
+		}
+	}
+}
+
+func BenchmarkMD5Hash(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		m := md5.New()
+		m.Write([]byte(strconv.Itoa(event.ActionID) + event.AccID + event.AppID))
+		m.Sum(nil)
+	}
 }
