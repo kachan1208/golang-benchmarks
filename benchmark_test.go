@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/md5"
 	"encoding/json"
+	"hash/fnv"
 	"reflect"
 	"strconv"
 	"testing"
@@ -245,5 +246,13 @@ func BenchmarkMD5Hash(b *testing.B) {
 		m := md5.New()
 		m.Write([]byte(strconv.Itoa(event.ActionID) + event.AccID + event.AppID))
 		m.Sum(nil)
+	}
+}
+
+func BenchmarkFnvHash(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		h := fnv.New64()
+		h.Write([]byte(strconv.Itoa(event.ActionID) + event.AccID + event.AppID))
+		h.Sum64()
 	}
 }
