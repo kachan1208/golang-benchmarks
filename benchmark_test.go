@@ -3,10 +3,14 @@ package main
 import (
 	"crypto/md5"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"hash/fnv"
 	"reflect"
 	"strconv"
 	"testing"
+
+	externalErrors "github.com/pkg/errors"
 )
 
 type testInterface struct {
@@ -31,6 +35,8 @@ var body = `123456789012345678901234567890sdlfksdlf;h sdlkfjhsdflkjhsdflk jsdflk
             hfalsdkjfhlaskdjfhlsakdjfhalskdjfhsalkdjhf`
 var message = msg{body, 1, 2, 3}
 var err error
+var err2 = errors.New("err 222")
+var err3 = errors.New("err 333")
 
 type value struct {
 	num int
@@ -255,4 +261,20 @@ func BenchmarkFnvHash(b *testing.B) {
 		h.Write([]byte(strconv.Itoa(event.ActionID) + event.AccID + event.AppID))
 		h.Sum64()
 	}
+}
+
+func BenchmarkErrof(b *testing.B) {
+	var newErr error
+	for i := 0; i < b.N; i++ {
+		newErr = fmt.Errorf("new error %w", err2)
+	}
+	_ = newErr
+}
+
+func BenchmarkWrap(b *testing.B) {
+	var newErr error
+	for i := 0; i < b.N; i++ {
+		newErr = externalErrors.Wrap(err2, "new error")
+	}
+	_ = newErr
 }
